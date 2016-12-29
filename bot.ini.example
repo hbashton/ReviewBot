@@ -1,0 +1,15 @@
+[KEYS]
+bot_api = somelongshithere
+[ADMIN]
+id = 1234567
+[JENKINS]
+on = "please put yes or no here"
+url = jenkins url
+user = jenkins username
+password = jenkins password
+token = token
+job = job
+[GERRIT]
+url = gerrit url
+user = gerrituser
+protocol = http or https
