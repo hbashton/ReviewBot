@@ -70,8 +70,9 @@ def openchanges(bot, update):
     if update.message.from_user.id == int(config['ADMIN']['id']):
         bot.sendChatAction(chat_id=update.message.chat_id,
                            action=ChatAction.TYPING)
-        curl = "curl -H 'Accept-Type: application/json' " + protocol + "://" + gerrituser + "@" + gerriturl + "/changes/?q=status:open | sed '1d' > open.json"
+        curl = "rm open.json && curl -H 'Accept-Type: application/json' " + protocol + "://" + gerrituser + "@" + gerriturl + "/changes/?q=status:open | sed '1d' > open.json"
         command = subprocess.Popen(curl, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        time.sleep(1)
         with open('open.json', encoding='utf-8') as data_file:
             data = json.load(data_file)
         dict_length = len(data)
@@ -102,7 +103,7 @@ def openchanges(bot, update):
 def start(bot, update):
     bot.sendChatAction(chat_id=update.message.chat_id,
                        action=ChatAction.TYPING)
-    bot.sendMessage(chat_id=update.message.chat_id, 
+    bot.sendMessage(chat_id=update.message.chat_id,
                     text="Hi. I'm Hunter's Jenkins Bot! You can use me to start builds, assuming your name is @hunter_bruhh! If not, then I'm not much use to you right now! Maybe he'll implement some cool stuff later!")
     if update.message.from_user.id != int(config['ADMIN']['id']):
         bot.sendChatAction(chat_id=update.message.chat_id,
@@ -117,7 +118,7 @@ def start(bot, update):
                         text="Sup @hunter_bruhh ! \nHere's a list of commands for you to use\n/build to start the build process\n/changelog 'text' to set the changelog\n/sync to set sync to on/off\n/clean to set clean to on/off\n/repopick " + "`" + "changes"+ "`" + " to pick from gerrit on build\n/repopick to set repopick on or off\n/open to see all open changes\n/pickopen to pick all open changes on gerrit\n/start to see this message :)")
         bot.sendChatAction(chat_id=update.message.chat_id,
                            action=ChatAction.TYPING)
-                           
+
 def choosebuild(bot, update):
     if update.message.from_user.id == int(config['ADMIN']['id']):
         keyboard = [[InlineKeyboardButton("Without Paramaters", callback_data='build')],
@@ -135,7 +136,7 @@ def sync(bot, update):
 
         reply_markup = InlineKeyboardMarkup(keyboard)
         update.message.reply_text('Would you like to sync on a new build?:', reply_markup=reply_markup)
-        
+
 def clean(bot, update):
     if update.message.from_user.id == int(config['ADMIN']['id']):
         keyboard = [[InlineKeyboardButton("YES", callback_data='cleanon')],
@@ -148,35 +149,35 @@ def clean(bot, update):
 def buildwithparams(bot, update, query):
     query = update.callback_query
     bot.sendMessage(chat_id=query.message.chat_id,
-                    text="You have selected the 'buildWithParameters option, this will include a custom changelog with your build, and will specify whether to sync & clean or not", 
+                    text="You have selected the 'buildWithParameters option, this will include a custom changelog with your build, and will specify whether to sync & clean or not",
                     parse_mode="Markdown")
     user_id = update.callback_query.from_user.id
     try:
         cg
     except NameError:
         bot.sendMessage(chat_id=query.message.chat_id,
-                        text="You have selected the 'buildWithParameters option, but the changelog is empty. Please use /changelog + 'text' to provide a changlog for your users.", 
+                        text="You have selected the 'buildWithParameters option, but the changelog is empty. Please use /changelog + 'text' to provide a changlog for your users.",
                         parse_mode="Markdown")
         return 1
     try:
         syncparam
     except NameError:
         bot.sendMessage(chat_id=query.message.chat_id,
-                text="You have selected the 'buildWithParameters option, but have not specified whether you would like to sync before building. Please use /sync to do so.", 
+                text="You have selected the 'buildWithParameters option, but have not specified whether you would like to sync before building. Please use /sync to do so.",
                 parse_mode="Markdown")
         return 1
     try:
         cleanparam
     except NameError:
         bot.sendMessage(chat_id=query.message.chat_id,
-                text="You have selected the 'buildWithParameters option, but have not specified whether you would like to clean before building. Please use /clean to do so.", 
+                text="You have selected the 'buildWithParameters option, but have not specified whether you would like to clean before building. Please use /clean to do so.",
                 parse_mode="Markdown")
         return 1
     try:
         repopickstatus
     except NameError:
         bot.sendMessage(chat_id=query.message.chat_id,
-                        text="You have selected the 'buildWithParameters option, but repopick isn't turned on or off. Turn it on or off with /repopick", 
+                        text="You have selected the 'buildWithParameters option, but repopick isn't turned on or off. Turn it on or off with /repopick",
                         parse_mode="Markdown")
         return 1
     if repopickstatus == "true":
@@ -184,7 +185,7 @@ def buildwithparams(bot, update, query):
             rpick
         except NameError:
             bot.sendMessage(chat_id=query.message.chat_id,
-                            text="You have selected the 'buildWithParameters option, repopick is on, but it's empty. Please use /repopick + 'changes' to pick changes from gerrit, or turn repopick off with /repopick", 
+                            text="You have selected the 'buildWithParameters option, repopick is on, but it's empty. Please use /repopick + 'changes' to pick changes from gerrit, or turn repopick off with /repopick",
                             parse_mode="Markdown")
             return 1
     if cg:
@@ -204,24 +205,24 @@ def buildwithparams(bot, update, query):
                     output = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     output = output.stdout.read().decode('utf-8')
                     output = '`{0}`'.format(output)
-                
+
                     bot.sendMessage(chat_id=query.message.chat_id,
-                                    text=output, 
+                                    text=output,
                                     parse_mode="Markdown")
             else:
                 bot.sendMessage(chat_id=query.message.chat_id,
-                                text="You have selected the 'buildWithParameters option, but have not specified whether you would like to clean before building. Please use /clean to do so.", 
+                                text="You have selected the 'buildWithParameters option, but have not specified whether you would like to clean before building. Please use /clean to do so.",
                                 parse_mode="Markdown")
         else:
             bot.sendMessage(chat_id=query.message.chat_id,
-                            text="You have selected the 'buildWithParameters option, but have not specified whether you would like to sync before building. Please use /sync to do so.", 
+                            text="You have selected the 'buildWithParameters option, but have not specified whether you would like to sync before building. Please use /sync to do so.",
                             parse_mode="Markdown")
     else:
         bot.sendMessage(chat_id=query.message.chat_id,
-                            text="You have selected the 'buildWithParameters option, but the changelog is empty. Please use /changelog + 'text' to provide a changlog for your users.", 
+                            text="You have selected the 'buildWithParameters option, but the changelog is empty. Please use /changelog + 'text' to provide a changlog for your users.",
                             parse_mode="Markdown")
-                            
-                        
+
+
 def buildwithoutparams(bot, update, query):
     user_id = update.callback_query.from_user.id
     command_string = jenkins + "/job/" + job + "/buildWithParameters?token=" + token
@@ -236,12 +237,12 @@ def buildwithoutparams(bot, update, query):
 
         bot.sendMessage(chat_id=query.message.chat_id,
                         text=output, parse_mode="Markdown")
-                            
+
 def changelog(bot, update, args):
         if update.message.from_user.id == int(config['ADMIN']['id']):
             global cg
             user = update.message.from_user
-            
+
             str_args = ' '.join(args)
             if str_args != "":
                 update.message.reply_text('Changelog updated: ' + "'" + str_args + "'")
@@ -250,14 +251,14 @@ def changelog(bot, update, args):
                 print ("Changelog set to " + "'" + cg + "'")
             else:
                 bot.sendMessage(chat_id=update.message.chat_id,
-                                text="You cannot provide an empty changelog.", 
+                                text="You cannot provide an empty changelog.",
                                 parse_mode="Markdown")
-                                
+
 def repopick(bot, update, args):
         if update.message.from_user.id == int(config['ADMIN']['id']):
             global rpick
             user = update.message.from_user
-            
+
             str_args = ' '.join(args)
             if str_args != "":
                 update.message.reply_text('I will pick changes: ' + "'" + str_args + "'")
@@ -266,9 +267,9 @@ def repopick(bot, update, args):
                 print ("Repopick set to" + "'" + rpick + "'")
             else:
                 keyboard = [[InlineKeyboardButton("ON", callback_data='repopickon')],
-        
+
                             [InlineKeyboardButton("OFF", callback_data='repopickoff')]]
-        
+
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 update.message.reply_text('Turn repopick ON or OFF:', reply_markup=reply_markup)
 
@@ -297,7 +298,7 @@ def button(bot, update, direct=True):
                                     message_id=query.message.message_id)
                 syncparam = "true"
                 bot.sendMessage(chat_id=query.message.chat_id,
-                                text="Sync set to true", 
+                                text="Sync set to true",
                                 parse_mode="Markdown")
             if selected_button == 'syncoff':
                 bot.editMessageText(text="Selected option: NO",
@@ -305,7 +306,7 @@ def button(bot, update, direct=True):
                                     message_id=query.message.message_id)
                 syncparam = "false"
                 bot.sendMessage(chat_id=query.message.chat_id,
-                                text="Sync set to false", 
+                                text="Sync set to false",
                                 parse_mode="Markdown")
             if selected_button == 'cleanon':
                 bot.editMessageText(text="Selected option: YES",
@@ -313,7 +314,7 @@ def button(bot, update, direct=True):
                                     message_id=query.message.message_id)
                 cleanparam = "true"
                 bot.sendMessage(chat_id=query.message.chat_id,
-                                text="Clean set to true", 
+                                text="Clean set to true",
                                 parse_mode="Markdown")
             if selected_button == 'cleanoff':
                 bot.editMessageText(text="Selected option: NO",
@@ -321,7 +322,7 @@ def button(bot, update, direct=True):
                                     message_id=query.message.message_id)
                 cleanparam = "false"
                 bot.sendMessage(chat_id=query.message.chat_id,
-                                text="Clean set to false", 
+                                text="Clean set to false",
                                 parse_mode="Markdown")
             if selected_button == 'repopickon':
                 bot.editMessageText(text="Selected option: ON",
@@ -329,7 +330,7 @@ def button(bot, update, direct=True):
                                     message_id=query.message.message_id)
                 repopickstatus = "true"
                 bot.sendMessage(chat_id=query.message.chat_id,
-                                text="repopick set to ON", 
+                                text="repopick set to ON",
                                 parse_mode="Markdown")
             if selected_button == 'repopickoff':
                 bot.editMessageText(text="Selected option: OFF",
@@ -337,14 +338,14 @@ def button(bot, update, direct=True):
                                     message_id=query.message.message_id)
                 repopickstatus = "false"
                 bot.sendMessage(chat_id=query.message.chat_id,
-                                text="repopick set to OFF", 
+                                text="repopick set to OFF",
                                 parse_mode="Markdown")
         else:
                 bot.sendMessage(chat_id=query.message.chat_id,
-                                text="You trying to spam me bro?", 
+                                text="You trying to spam me bro?",
                                 parse_mode="Markdown")
         return False
-            
+
 def inlinequery(bot, update):
     query = update.inline_query.query
     o = execute(query, update, direct=False)
